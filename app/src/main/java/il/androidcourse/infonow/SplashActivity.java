@@ -22,7 +22,7 @@ public class SplashActivity extends AppCompatActivity {
         new Handler().postDelayed(() -> {
             //FirebaseAuth auth = FirebaseAuth.getInstance();
             //if (auth.getCurrentUser() != null) {
-            if (null != null) {
+            if (null == null) {
                 startActivity(new Intent(SplashActivity.this, MainActivity.class));
             } else {
                 startActivity(new Intent(SplashActivity.this, AuthActivity.class));
