@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".LoginFragment">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="64sp"
+        android:text="Login"
+        android:gravity="center"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        >
+        <EditText
+            android:id="@+id/editTextUsername"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="24dp"
+            android:hint="Username"
+            android:inputType="textNoSuggestions"
+            android:selectAllOnFocus="true"/>
+
+        <EditText
+            android:id="@+id/editTextPassword"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textSize="24dp"
+            android:hint="@string/prompt_password"
+            android:imeActionLabel="Log In"
+            android:imeOptions="actionDone"
+            android:inputType="textPassword"
+            android:selectAllOnFocus="true" />
+
+        <TextView
+            android:id="@+id/textViewSignup"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textSize="18dp"
+            android:text="Don't have an account? Sign Up!" />
+
+
+            <Button
+                android:layout_centerInParent="true"
+                android:id="@+id/buttonLogin"
+                android:layout_width="128dp"
+                android:layout_height="48dp"
+                android:layout_margin="16dp"
+                android:enabled="false"
+                android:text="Log In" />
+
+    </LinearLayout>
+
+</FrameLayout>

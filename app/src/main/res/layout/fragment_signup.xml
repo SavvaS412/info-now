@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".SignupFragment">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="64sp"
+        android:text="Sign Up"
+        android:gravity="center"/>
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center">
+
+        <!-- Username EditText -->
+        <EditText
+            android:id="@+id/editTextUsername"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="24dp"
+            android:hint="Username"
+            android:inputType="textNoSuggestions"
+            android:selectAllOnFocus="true"/>
+
+
+        <!-- Password EditText -->
+        <EditText
+            android:id="@+id/editTextPassword"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textSize="24dp"
+            android:hint="@string/prompt_password"
+            android:imeActionLabel="Log In"
+            android:imeOptions="actionDone"
+            android:inputType="textPassword"
+            android:selectAllOnFocus="true" />
+
+        <!-- Login TextView -->
+        <TextView
+            android:id="@+id/textViewLogin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textSize="18dp"
+            android:text="Already have an account? Login here."/>
+
+        <!-- Signup Button -->
+        <Button
+            android:id="@+id/buttonSignup"
+            android:layout_width="128dp"
+            android:layout_height="48dp"
+            android:layout_margin="16dp"
+            android:text="Sign Up"/>
+
+    </LinearLayout>
+
+
+</FrameLayout>
