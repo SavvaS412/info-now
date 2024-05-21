@@ -3,6 +3,7 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Build;
@@ -27,9 +28,12 @@ public class RSSWorker extends Worker {
     private static final String TAG = "RSSWorker";
     private static final String CHANNEL_ID = "RSSChannel";
     private static final String RSS_URL = "https://www.israelhayom.co.il/rss.xml";
+    private static final String PREFS_NAME = "internal";
+    private SharedPreferences internalPreferences;
 
     public RSSWorker(@NonNull Context context, @NonNull WorkerParameters workerParams) {
         super(context, workerParams);
+        internalPreferences = getApplicationContext().getSharedPreferences(PREFS_NAME, 0);
     }
 
     @NonNull
@@ -68,6 +72,8 @@ public class RSSWorker extends Worker {
         List<RSSItem> items = new ArrayList<>();
         boolean insideItem = false;
         RSSItem currentItem = null;
+        SharedPreferences.Editor editor = internalPreferences.edit();
+        String lastPublishedLink = internalPreferences.getString("lastPublishedLink", "default_value");
 
         int eventType = parser.getEventType();
         while (eventType != XmlPullParser.END_DOCUMENT) {
@@ -91,6 +97,14 @@ public class RSSWorker extends Worker {
                 }
             } else if (eventType == XmlPullParser.END_TAG && parser.getName().equalsIgnoreCase("item")) {
                 insideItem = false;
+
+                if (currentItem != null && currentItem.getLink() == lastPublishedLink)
+                {
+                    editor.putString("lastPublishedLink", currentItem.getLink());
+                    editor.apply();
+                    break;
+                }
+
                 items.add(currentItem);
             }
             eventType = parser.next();
