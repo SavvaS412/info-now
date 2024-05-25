@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 public class RSSWorker extends Worker {
 
@@ -98,14 +99,14 @@ public class RSSWorker extends Worker {
             } else if (eventType == XmlPullParser.END_TAG && parser.getName().equalsIgnoreCase("item")) {
                 insideItem = false;
 
-                if (currentItem != null && currentItem.getLink() == lastPublishedLink)
-                {
-                    editor.putString("lastPublishedLink", currentItem.getLink());
-                    editor.apply();
+                if (currentItem != null && Objects.equals(currentItem.getLink(), lastPublishedLink))
                     break;
-                }
 
                 items.add(currentItem);
+                if (items.size() == 1) {
+                    editor.putString("lastPublishedLink", currentItem.getLink());
+                    editor.apply();
+                }
             }
             eventType = parser.next();
         }
