@@ -2,7 +2,9 @@ package il.androidcourse.infonow;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -19,6 +21,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -30,6 +33,7 @@ public class RSSWorker extends Worker {
     private static final String CHANNEL_ID = "RSSChannel";
     private static final String RSS_URL = "https://www.israelhayom.co.il/rss.xml";
     private static final String PREFS_NAME = "internal";
+    private static final int MAX_NOTIFICATIONS = 10;
     private SharedPreferences internalPreferences;
 
     public RSSWorker(@NonNull Context context, @NonNull WorkerParameters workerParams) {
@@ -107,6 +111,9 @@ public class RSSWorker extends Worker {
                     editor.putString("lastPublishedLink", currentItem.getLink());
                     editor.apply();
                 }
+
+                if (items.size() >= MAX_NOTIFICATIONS)      // limit the number of notifications at a time
+                    break;
             }
             eventType = parser.next();
         }
@@ -115,7 +122,16 @@ public class RSSWorker extends Worker {
     }
 
     private void showNotifications(List<RSSItem> items) {
-        for (RSSItem item : items) {
+        if (items == null || items.isEmpty()) {
+            return;
+        }
+
+        List<RSSItem> reversedItems = new ArrayList<>();
+        for (int i = items.size() - 1; i >= 0; i--) {
+            reversedItems.add(items.get(i));
+        }
+
+        for (RSSItem item : reversedItems)  {
             Bitmap bitmap = getBitmapFromUrl(item.getImage());
             if (bitmap != null) {
                 Notification notification = createNotification(item.getTitle(), bitmap);
@@ -140,6 +156,12 @@ public class RSSWorker extends Worker {
     }
 
     private Notification createNotification(String title, Bitmap image) {
+
+        Context context = getApplicationContext();
+        Intent intent = new Intent(context, SplashActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel channel = new NotificationChannel(CHANNEL_ID, "RSS Channel", NotificationManager.IMPORTANCE_DEFAULT);
             NotificationManager notificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
@@ -152,6 +174,8 @@ public class RSSWorker extends Worker {
                 .setContentTitle(title)
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setLargeIcon(image)
+                .setContentIntent(pendingIntent) // Set the intent that will fire when the user taps the notification
+                .setAutoCancel(true) // Automatically remove the notification when it is tapped
                 .build();
     }
 }
