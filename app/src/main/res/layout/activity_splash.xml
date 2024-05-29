@@ -12,7 +12,8 @@
         android:layout_width="164dp"
         android:layout_height="164dp"
         android:src="@drawable/i"
-        android:scaleType="centerCrop"/>
+        android:scaleType="centerCrop"
+        android:background="@null"/>
 
     <ProgressBar
         android:id="@+id/progressBar"
