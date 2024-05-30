@@ -93,7 +93,8 @@ public class RSSUtils {
                 if (currentItem != null && Objects.equals(currentItem.getLink(), lastPublishedLink))
                     break;
 
-                items.add(currentItem);
+                if (currentItem != null && currentItem.getImage() != null && currentItem.getImage() != "")
+                    items.add(currentItem);
                 if (items.size() == 1) {
                     editor.putString("lastPublishedLink", currentItem.getLink());
                     editor.apply();
@@ -105,6 +106,10 @@ public class RSSUtils {
             eventType = parser.next();
         }
 
-        return items;
+        List<RSSItem> reversedItems = new ArrayList<>();
+        for (int i = items.size() - 1; i >= 0; i--) {
+            reversedItems.add(items.get(i));
+        }
+        return reversedItems;
     }
 }

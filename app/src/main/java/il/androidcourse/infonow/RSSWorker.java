@@ -79,12 +79,7 @@ public class RSSWorker extends Worker {
             return;
         }
 
-        List<RSSItem> reversedItems = new ArrayList<>();
-        for (int i = items.size() - 1; i >= 0; i--) {
-            reversedItems.add(items.get(i));
-        }
-
-        for (RSSItem item : reversedItems)  {
+        for (RSSItem item : items)  {
             Bitmap bitmap = getBitmapFromUrl(item.getImage());
             if (bitmap != null) {
                 Notification notification = createNotification(item.getTitle(), bitmap);

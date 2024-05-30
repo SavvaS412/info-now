@@ -3,8 +3,11 @@ package il.androidcourse.infonow;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.Looper;
 import android.util.Log;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -25,6 +28,7 @@ import java.net.URL;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity {
@@ -32,9 +36,10 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
     private static final long INTERVAL = 1 * 60 * 1000; // 1 minutes
     private static final long SHORT_INTERVAL = 100; // 100 milliseconds
-    public List<RSSItem> rssItems;
-    private Handler handler;
-    private Runnable rssUpdater;
+    private List<RSSItem> rssItems = new CopyOnWriteArrayList<>();
+    private Handler mainHandler;
+    private HandlerThread handlerThread;
+    private Handler backgroundHandler;
     private NewsFragment newsFragment;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,44 +52,13 @@ public class MainActivity extends AppCompatActivity {
             notificationManager.cancelAll();
         }
 
-        handler = new Handler();
-        new Thread(new Runnable() {
-            private boolean firstRun = true;
+        mainHandler = new Handler(Looper.getMainLooper());
 
-            @Override
-            public void run() {
-                if (firstRun) {
-                    rssItems = fetchRSSItems(true);
-                    firstRun = false;
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            while (newsFragment == null || rssItems == null) {      // Wait until newsFragment & rssItems are not null
-                                try {
-                                    Thread.sleep(SHORT_INTERVAL);                   // 100 milliseconds delay
-                                } catch (InterruptedException e) {
-                                    e.printStackTrace();
-                                }
-                            }
-                            newsFragment.setRSSItems(rssItems);
-                        }
-                    });
-                } else {
-                    Log.d(TAG, "run: fetch New RSS Items");
-                    List<RSSItem> newRSSItems = fetchRSSItems(false);
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            if (newsFragment != null && rssItems != null) {      // Wait until newsFragment & rssItems are not null
-                                newsFragment.addRSSItems(rssItems);
-                            }
-                        }
-                    });
-                }
+        handlerThread = new HandlerThread("RSSHandlerThread");
+        handlerThread.start();
+        backgroundHandler = new Handler(handlerThread.getLooper());
 
-                handler.postDelayed(this, INTERVAL);
-            }
-        }).start();
+        backgroundHandler.post(new FetchRSSItemsTask(true));
 
         home();
     }
@@ -123,6 +97,38 @@ public class MainActivity extends AppCompatActivity {
         return items;
     }
 
+    private class FetchRSSItemsTask implements Runnable {
+        private boolean firstRun;
+
+        FetchRSSItemsTask(boolean firstRun) {
+            this.firstRun = firstRun;
+        }
+
+        @Override
+        public void run() {
+            if (firstRun) {
+                List<RSSItem> items = fetchRSSItems(true);
+                rssItems.addAll(items);
+                mainHandler.post(() -> {
+                    if (newsFragment != null && rssItems != null) {
+                        newsFragment.setRSSItems(rssItems);
+                    }
+                });
+                firstRun = false;
+            } else {
+                Log.d(TAG, "run: fetch New RSS Items");
+                List<RSSItem> newItems = fetchRSSItems(false);
+                mainHandler.post(() -> {
+                    if (newsFragment != null && newItems != null) {
+                        newsFragment.addRSSItems(newItems);
+                    }
+                });
+            }
+            backgroundHandler.postDelayed(this, INTERVAL);
+        }
+    }
+
+
     @Override
     protected void onStop() {
         super.onStop();
@@ -145,5 +151,10 @@ public class MainActivity extends AppCompatActivity {
         );
 
         Log.d(TAG, "run: start RSSWorker");
+    }
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        handlerThread.quitSafely();
     }
 }
