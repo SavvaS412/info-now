@@ -38,4 +38,8 @@ public class NewsFragment extends Fragment {
     public void setRSSItems(List<RSSItem> items) {
         adapter.setRSSItems(items);
     }
+
+    public void addRSSItems(List<RSSItem> items) {
+        adapter.addRSSItems(items);
+    }
 }

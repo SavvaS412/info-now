@@ -1,4 +1,7 @@
 package il.androidcourse.infonow;
+import static il.androidcourse.infonow.RSSUtils.PREFS_NAME;
+import static il.androidcourse.infonow.RSSUtils.RSS_URL;
+
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -31,14 +34,11 @@ public class RSSWorker extends Worker {
 
     private static final String TAG = "RSSWorker";
     private static final String CHANNEL_ID = "RSSChannel";
-    private static final String RSS_URL = "https://www.israelhayom.co.il/rss.xml";
-    private static final String PREFS_NAME = "internal";
+
     private static final int MAX_NOTIFICATIONS = 10;
-    private SharedPreferences internalPreferences;
 
     public RSSWorker(@NonNull Context context, @NonNull WorkerParameters workerParams) {
         super(context, workerParams);
-        internalPreferences = getApplicationContext().getSharedPreferences(PREFS_NAME, 0);
     }
 
     @NonNull
@@ -57,7 +57,8 @@ public class RSSWorker extends Worker {
             XmlPullParser parser = factory.newPullParser();
             parser.setInput(inputStream, null);
 
-            List<RSSItem> newItems = parseRSS(parser);
+            Context context = getApplicationContext(); // Use the appropriate context here
+            List<RSSItem> newItems = RSSUtils.parseNewRSS(parser, context, MAX_NOTIFICATIONS);
 
             if (!newItems.isEmpty()) {
                 showNotifications(newItems);
@@ -71,54 +72,6 @@ public class RSSWorker extends Worker {
 
         Log.d(TAG, "RSSWorker completed");
         return Result.success();
-    }
-
-    private List<RSSItem> parseRSS(XmlPullParser parser) throws Exception {
-        List<RSSItem> items = new ArrayList<>();
-        boolean insideItem = false;
-        RSSItem currentItem = null;
-        SharedPreferences.Editor editor = internalPreferences.edit();
-        String lastPublishedLink = internalPreferences.getString("lastPublishedLink", "default_value");
-
-        int eventType = parser.getEventType();
-        while (eventType != XmlPullParser.END_DOCUMENT) {
-            if (eventType == XmlPullParser.START_TAG) {
-                if (parser.getName().equalsIgnoreCase("item")) {
-                    insideItem = true;
-                    currentItem = new RSSItem("", "", null, "", "");
-                } else if (parser.getName().equalsIgnoreCase("title") && insideItem) {
-                    currentItem.setTitle(parser.nextText());
-                } else if (parser.getName().equalsIgnoreCase("description") && insideItem) {
-                    currentItem.setDescription(parser.nextText());
-                } else if (parser.getName().equalsIgnoreCase("pubDate") && insideItem) {
-                    String dateString = parser.nextText();
-                    SimpleDateFormat format = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z", Locale.ENGLISH);
-                    Date pubDate = format.parse(dateString);
-                    currentItem.setPubDate(pubDate);
-                } else if (parser.getName().equalsIgnoreCase("link") && insideItem) {
-                    currentItem.setLink(parser.nextText());
-                } else if (parser.getName().equalsIgnoreCase("image") && insideItem) {
-                    currentItem.setImage(parser.nextText());
-                }
-            } else if (eventType == XmlPullParser.END_TAG && parser.getName().equalsIgnoreCase("item")) {
-                insideItem = false;
-
-                if (currentItem != null && Objects.equals(currentItem.getLink(), lastPublishedLink))
-                    break;
-
-                items.add(currentItem);
-                if (items.size() == 1) {
-                    editor.putString("lastPublishedLink", currentItem.getLink());
-                    editor.apply();
-                }
-
-                if (items.size() >= MAX_NOTIFICATIONS)      // limit the number of notifications at a time
-                    break;
-            }
-            eventType = parser.next();
-        }
-
-        return items;
     }
 
     private void showNotifications(List<RSSItem> items) {
@@ -145,6 +98,7 @@ public class RSSWorker extends Worker {
 
     private Bitmap getBitmapFromUrl(String imageUrl) {
         try {
+            Log.d(TAG, "downloading image from: " + imageUrl);
             URL url = new URL(imageUrl);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             InputStream inputStream = connection.getInputStream();
@@ -160,7 +114,7 @@ public class RSSWorker extends Worker {
         Context context = getApplicationContext();
         Intent intent = new Intent(context, SplashActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel channel = new NotificationChannel(CHANNEL_ID, "RSS Channel", NotificationManager.IMPORTANCE_DEFAULT);

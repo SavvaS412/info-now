@@ -1,6 +1,8 @@
 package il.androidcourse.infonow;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 public class RSSItem {
     private String title;
@@ -36,6 +38,11 @@ public class RSSItem {
 
     public Date getPubDate() {
         return pubDate;
+    }
+
+    public String getHourAndMinutes() {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm", Locale.getDefault());
+        return dateFormat.format(getPubDate());
     }
 
     public void setPubDate(Date pubDate) {

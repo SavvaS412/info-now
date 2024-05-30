@@ -30,7 +30,7 @@ import java.util.concurrent.TimeUnit;
 public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_CODE_PERMISSIONS = 123;
     private static final String TAG = "MainActivity";
-    private static final long INTERVAL = 5 * 60 * 1000; // 5 minutes
+    private static final long INTERVAL = 1 * 60 * 1000; // 1 minutes
     private static final long SHORT_INTERVAL = 100; // 100 milliseconds
     public List<RSSItem> rssItems;
     private Handler handler;
@@ -54,31 +54,37 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void run() {
                 if (firstRun) {
-                    rssItems = fetchRSSItems();
+                    rssItems = fetchRSSItems(true);
                     firstRun = false;
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            while (newsFragment == null || rssItems == null) {      // Wait until newsFragment & rssItems are not null
+                                try {
+                                    Thread.sleep(SHORT_INTERVAL);                   // 100 milliseconds delay
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                            newsFragment.setRSSItems(rssItems);
+                        }
+                    });
                 } else {
-                    //fetchRSSNewItem();
+                    Log.d(TAG, "run: fetch New RSS Items");
+                    List<RSSItem> newRSSItems = fetchRSSItems(false);
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (newsFragment != null && rssItems != null) {      // Wait until newsFragment & rssItems are not null
+                                newsFragment.addRSSItems(rssItems);
+                            }
+                        }
+                    });
                 }
 
                 handler.postDelayed(this, INTERVAL);
             }
         }).start();
-
-        rssUpdater = new Runnable() {
-            @Override
-            public void run() {
-                while (newsFragment == null || rssItems == null) {      // Wait until newsFragment & rssItems are not null
-                    try {
-                        Thread.sleep(SHORT_INTERVAL);                   // 100 milliseconds delay
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-                newsFragment.setRSSItems(rssItems);
-            }
-        };
-
-        handler.post(rssUpdater);                                       // Initial run
 
         home();
     }
@@ -90,11 +96,11 @@ public class MainActivity extends AppCompatActivity {
         transaction.commit();
     }
 
-    private List<RSSItem> fetchRSSItems() {
+    private List<RSSItem> fetchRSSItems(boolean allItems) {
         List<RSSItem> items;
         try {
             // Fetch RSS feed
-            URL url = new URL("https://www.israelhayom.co.il/rss.xml");
+            URL url = new URL(RSSUtils.RSS_URL);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             InputStream inputStream = connection.getInputStream();
 
@@ -103,7 +109,11 @@ public class MainActivity extends AppCompatActivity {
             XmlPullParser parser = factory.newPullParser();
             parser.setInput(inputStream, null);
 
-            items = RSSUtils.parseRSS(parser);
+            Context context = MainActivity.this; // Use the appropriate context here
+            if (allItems)
+                items = RSSUtils.parseRSS(parser, context);
+            else
+                items = RSSUtils.parseNewRSS(parser, context, 999);
 
             inputStream.close();
         } catch (Exception e) {
@@ -133,5 +143,7 @@ public class MainActivity extends AppCompatActivity {
                 ExistingPeriodicWorkPolicy.KEEP,
                 workRequest
         );
+
+        Log.d(TAG, "run: start RSSWorker");
     }
 }
