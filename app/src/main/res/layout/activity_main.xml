@@ -6,13 +6,72 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Hello World!"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_constraintTop_toTopOf="parent">
 
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/menu_bar">
+
+            <ImageButton
+                android:id="@+id/home_button"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:layout_centerInParent="true"
+                android:background="@null"
+                android:scaleType="centerCrop"
+                android:src="@drawable/i" />
+
+            <ImageButton
+                android:id="@+id/settings_button"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true"
+                android:background="@null"
+                android:scaleType="centerCrop"
+                android:src="@drawable/settings"
+                app:tint="@color/black" />
+            <!--        make tint for icons depend on -->
+
+        </RelativeLayout>
+
+        <!-- Fragment Container -->
+        <FrameLayout
+            android:id="@+id/fragment_container"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@id/menu_bar"/>
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/splash"
+        android:background="#FFFFFF">
+
+        <ImageView
+            android:layout_centerInParent="true"
+            android:id="@+id/imageView"
+            android:layout_width="164dp"
+            android:layout_height="164dp"
+            android:src="@drawable/i"
+            android:scaleType="centerCrop"
+            android:background="@null"/>
+
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="128dp"
+            android:layout_height="16dp"
+            android:layout_below="@id/imageView"
+            android:layout_marginTop="16dp"
+            android:layout_centerInParent="true"
+            style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+            android:indeterminate="false"
+            android:progress="0"
+            android:progressBackgroundTint="#597CFF"/>
+    </RelativeLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

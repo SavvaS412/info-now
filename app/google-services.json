@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "636120767143",
+    "project_id": "info-now-36ac4",
+    "storage_bucket": "info-now-36ac4.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:636120767143:android:9c65677f318d023a5a9982",
+        "android_client_info": {
+          "package_name": "il.androidcourse.infonow"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBf_Buv_PRQY8_i4pCoPjSw4WI8ju0uOPQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
