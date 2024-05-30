@@ -36,6 +36,13 @@ public class RSSItemAdapter extends RecyclerView.Adapter<RSSItemAdapter.ViewHold
         notifyDataSetChanged();
     }
 
+    public void addRSSItems(List<RSSItem> items) {
+        for (RSSItem item: items) {
+            this.rssItems.add(0, item);
+        }
+        notifyItemRangeInserted(0, items.size());
+    }
+
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
