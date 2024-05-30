@@ -20,6 +20,7 @@ public class LoginFragment extends Fragment {
 
     private EditText editTextEmail, editTextPassword;
     private Button buttonLogin;
+    private Button buttonLoginGuest;
     private TextView textViewSignup;
 
     private FirebaseAuth auth;
@@ -31,11 +32,24 @@ public class LoginFragment extends Fragment {
         editTextEmail = view.findViewById(R.id.editTextUsername);
         editTextPassword = view.findViewById(R.id.editTextPassword);
         buttonLogin = view.findViewById(R.id.buttonLogin);
+        buttonLoginGuest = view.findViewById(R.id.buttonLoginGuest);
         textViewSignup = view.findViewById(R.id.textViewSignup);
 
-        //auth = FirebaseAuth.getInstance();
+        auth = FirebaseAuth.getInstance();
 
         buttonLogin.setOnClickListener(v -> loginUser());
+        buttonLoginGuest.setOnClickListener(v -> {
+            auth.signInAnonymously()
+                    .addOnCompleteListener(requireActivity(), task -> {
+                        if (task.isSuccessful()) {
+                            // Sign in success, navigate to MainActivity
+                            ((AuthActivity) requireActivity()).navigateToMainActivity();
+                        } else {
+                            // If sign in fails, display a message to the user.
+                            Toast.makeText(getActivity(), "Guest Authentication Failed.", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+        });
 
         textViewSignup.setOnClickListener(v -> {
             // Navigate to SignupFragment
@@ -61,7 +75,7 @@ public class LoginFragment extends Fragment {
                         ((AuthActivity) requireActivity()).navigateToMainActivity();
                     } else {
                         // If sign in fails, display a message to the user.
-                        Toast.makeText(getActivity(), "Authentication failed.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getActivity(), "Authentication failed", Toast.LENGTH_SHORT).show();
                     }
                 });
     }

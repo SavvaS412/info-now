@@ -22,6 +22,9 @@ import androidx.work.NetworkType;
 import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserFactory;
 
@@ -44,44 +47,44 @@ public class MainActivity extends AppCompatActivity {
     private HandlerThread handlerThread;
     private Handler backgroundHandler;
     private NewsFragment newsFragment;
-    private Intent nextIntent;
+
+    private FirebaseAuth auth;
+    private FirebaseUser user;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        startProgressBar();
+        auth = FirebaseAuth.getInstance();
+        user = auth.getCurrentUser();
+        if (user == null) {
+            startActivity(new Intent(MainActivity.this, AuthActivity.class));
+            finish();
+        }
+        else {
+            startProgressBar();
 
-        new Handler().postDelayed(() -> {
-            if (nextIntent != null){
-                startActivity(nextIntent);
-                finish();
+            new Handler().postDelayed(() -> {
+                RelativeLayout splash = findViewById(R.id.splash);
+                splash.setVisibility(View.GONE);
+            }, 3000); // Splash screen duration
+
+            // Cancel all notifications when the app is opened
+            NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            if (notificationManager != null) {
+                notificationManager.cancelAll();
             }
 
-            RelativeLayout splash = findViewById(R.id.splash);
-            splash.setVisibility(View.GONE);
-        }, 3000); // Splash screen duration
+            mainHandler = new Handler(Looper.getMainLooper());
 
-        //FirebaseAuth auth = FirebaseAuth.getInstance();
-        //if (auth.getCurrentUser() != null) {
-        if (null != null)
-            nextIntent = new Intent(MainActivity.this, AuthActivity.class);
+            handlerThread = new HandlerThread("RSSHandlerThread");
+            handlerThread.start();
 
-        // Cancel all notifications when the app is opened
-        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        if (notificationManager != null) {
-            notificationManager.cancelAll();
+            backgroundHandler = new Handler(handlerThread.getLooper());
+
+            backgroundHandler.post(new FetchRSSItemsTask(true));
+            home();
         }
-
-        mainHandler = new Handler(Looper.getMainLooper());
-
-        handlerThread = new HandlerThread("RSSHandlerThread");
-        handlerThread.start();
-
-        backgroundHandler = new Handler(handlerThread.getLooper());
-
-        backgroundHandler.post(new FetchRSSItemsTask(true));
-        home();
     }
 
     private void home() {
@@ -181,7 +184,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        handlerThread.quitSafely();
+        if (handlerThread != null)
+            handlerThread.quitSafely();
     }
 
     private void startProgressBar(){

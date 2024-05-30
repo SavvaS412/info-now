@@ -10,15 +10,13 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
 public class AuthActivity extends AppCompatActivity {
-
+    private FirebaseAuth auth;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_auth);
 
-        // Check if the user is already logged in
-//        FirebaseAuth auth = FirebaseAuth.getInstance();
-//        FirebaseUser currentUser = auth.getCurrentUser();
+        auth = FirebaseAuth.getInstance();
         showFragment(new LoginFragment());
     }
 

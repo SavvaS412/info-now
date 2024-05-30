@@ -3,14 +3,35 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".SignupFragment">
 
-    <TextView
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="64sp"
-        android:text="Sign Up"
-        android:gravity="center"/>
+        android:layout_height="match_parent">
+
+        <TextView
+            android:id="@+id/titleSignup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="64sp"
+            android:text="Sign Up"
+            android:gravity="center"
+            app:layout_constraintTop_toTopOf="parent"/>
+
+        <!-- Login TextView -->
+        <TextView
+            android:id="@+id/textViewLogin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Already have an account? Login"
+            android:textSize="18sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/titleSignup" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
@@ -20,13 +41,26 @@
 
         <!-- Username EditText -->
         <EditText
+            android:id="@+id/editTextEmail"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="24sp"
+            android:hint="Email"
+            android:inputType="textEmailAddress"
+            android:selectAllOnFocus="true"
+            android:autofillHints="emailAddress"/>
+
+        <!-- Username EditText -->
+        <EditText
             android:id="@+id/editTextUsername"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="24dp"
+            android:textSize="24sp"
+            android:layout_marginTop="8dp"
             android:hint="Username"
-            android:inputType="textNoSuggestions"
-            android:selectAllOnFocus="true"/>
+            android:inputType="textPersonName"
+            android:selectAllOnFocus="true"
+            android:autofillHints="name"/>
 
 
         <!-- Password EditText -->
@@ -35,27 +69,18 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:textSize="24dp"
+            android:textSize="24sp"
             android:hint="@string/prompt_password"
             android:imeActionLabel="Log In"
             android:imeOptions="actionDone"
             android:inputType="textPassword"
             android:selectAllOnFocus="true" />
 
-        <!-- Login TextView -->
-        <TextView
-            android:id="@+id/textViewLogin"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:textSize="18dp"
-            android:text="Already have an account? Login here."/>
-
         <!-- Signup Button -->
         <Button
             android:id="@+id/buttonSignup"
-            android:layout_width="128dp"
-            android:layout_height="48dp"
+            android:layout_width="256dp"
+            android:layout_height="64dp"
             android:layout_margin="16dp"
             android:text="Sign Up"/>
 

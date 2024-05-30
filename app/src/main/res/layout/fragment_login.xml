@@ -3,14 +3,34 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".LoginFragment">
 
-    <TextView
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="64sp"
-        android:text="Login"
-        android:gravity="center"/>
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/titleLogin"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="64sp"
+            android:text="Login"
+            android:gravity="center"
+            app:layout_constraintTop_toTopOf="parent"/>
+
+
+        <TextView
+            android:id="@+id/textViewSignup"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Don't have an account? Sign Up"
+            android:textSize="18sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/titleLogin" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -22,41 +42,39 @@
             android:id="@+id/editTextUsername"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="24dp"
+            android:textSize="24sp"
             android:hint="Username"
-            android:inputType="textNoSuggestions"
-            android:selectAllOnFocus="true"/>
+            android:inputType="textPersonName"
+            android:selectAllOnFocus="true"
+            android:autofillHints="name" />
 
         <EditText
             android:id="@+id/editTextPassword"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:textSize="24dp"
+            android:textSize="24sp"
             android:hint="@string/prompt_password"
             android:imeActionLabel="Log In"
             android:imeOptions="actionDone"
             android:inputType="textPassword"
             android:selectAllOnFocus="true" />
 
-        <TextView
-            android:id="@+id/textViewSignup"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:textSize="18dp"
-            android:text="Don't have an account? Sign Up!" />
+        <Button
+            android:id="@+id/buttonLogin"
+            android:layout_width="256dp"
+            android:layout_height="64dp"
+            android:layout_margin="16dp"
+            android:enabled="true"
+            android:text="Log in" />
 
-
-            <Button
-                android:layout_centerInParent="true"
-                android:id="@+id/buttonLogin"
-                android:layout_width="128dp"
-                android:layout_height="48dp"
-                android:layout_margin="16dp"
-                android:enabled="false"
-                android:text="Log In" />
-
+        <Button
+            android:id="@+id/buttonLoginGuest"
+            android:layout_width="256dp"
+            android:layout_height="64dp"
+            android:enabled="true"
+            android:text="Log in as Guest"
+            android:backgroundTint="#AAA"/>
     </LinearLayout>
 
 </FrameLayout>

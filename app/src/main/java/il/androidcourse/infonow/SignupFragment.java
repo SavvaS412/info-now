@@ -17,7 +17,7 @@ import com.google.firebase.auth.FirebaseUser;
 
 public class SignupFragment extends Fragment {
 
-    private EditText editTextEmail, editTextPassword;
+    private EditText editTextEmail, editTextUsername, editTextPassword;
     private Button buttonSignup;
     private TextView textViewLogin;
 
@@ -27,12 +27,13 @@ public class SignupFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_signup, container, false);
 
-        editTextEmail = view.findViewById(R.id.editTextUsername);
+        editTextEmail = view.findViewById(R.id.editTextEmail);
+        editTextUsername = view.findViewById(R.id.editTextUsername);
         editTextPassword = view.findViewById(R.id.editTextPassword);
         buttonSignup = view.findViewById(R.id.buttonSignup);
         textViewLogin = view.findViewById(R.id.textViewLogin);
 
-        //auth = FirebaseAuth.getInstance();
+        auth = FirebaseAuth.getInstance();
 
         buttonSignup.setOnClickListener(v -> signupUser());
 
@@ -60,7 +61,7 @@ public class SignupFragment extends Fragment {
                         ((AuthActivity) requireActivity()).navigateToMainActivity();
                     } else {
                         // If sign up fails, display a message to the user.
-                        Toast.makeText(getActivity(), "Authentication failed.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getActivity(), "Authentication failed", Toast.LENGTH_SHORT).show();
                     }
                 });
     }
