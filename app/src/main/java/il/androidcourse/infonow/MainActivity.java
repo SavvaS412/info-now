@@ -1,20 +1,23 @@
 package il.androidcourse.infonow;
 
+import android.animation.ObjectAnimator;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.util.Log;
+import android.view.View;
+import android.view.animation.AccelerateDecelerateInterpolator;
+import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.work.Constraints;
 import androidx.work.ExistingPeriodicWorkPolicy;
-import androidx.work.ListenableWorker;
 import androidx.work.NetworkType;
 import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
@@ -41,10 +44,28 @@ public class MainActivity extends AppCompatActivity {
     private HandlerThread handlerThread;
     private Handler backgroundHandler;
     private NewsFragment newsFragment;
+    private Intent nextIntent;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        startProgressBar();
+
+        new Handler().postDelayed(() -> {
+            if (nextIntent != null){
+                startActivity(nextIntent);
+                finish();
+            }
+
+            RelativeLayout splash = findViewById(R.id.splash);
+            splash.setVisibility(View.GONE);
+        }, 3000); // Splash screen duration
+
+        //FirebaseAuth auth = FirebaseAuth.getInstance();
+        //if (auth.getCurrentUser() != null) {
+        if (null != null)
+            nextIntent = new Intent(MainActivity.this, AuthActivity.class);
 
         // Cancel all notifications when the app is opened
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -56,10 +77,10 @@ public class MainActivity extends AppCompatActivity {
 
         handlerThread = new HandlerThread("RSSHandlerThread");
         handlerThread.start();
+
         backgroundHandler = new Handler(handlerThread.getLooper());
 
         backgroundHandler.post(new FetchRSSItemsTask(true));
-
         home();
     }
 
@@ -110,9 +131,14 @@ public class MainActivity extends AppCompatActivity {
                 List<RSSItem> items = fetchRSSItems(true);
                 rssItems.addAll(items);
                 mainHandler.post(() -> {
-                    if (newsFragment != null && rssItems != null) {
-                        newsFragment.setRSSItems(rssItems);
+                    while (!(newsFragment != null && rssItems != null)) {
+                        try {
+                            Thread.sleep(50); // Sleep for 50 milliseconds
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                     }
+                    newsFragment.setRSSItems(rssItems);
                 });
                 firstRun = false;
             } else {
@@ -156,5 +182,13 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         handlerThread.quitSafely();
+    }
+
+    private void startProgressBar(){
+        ProgressBar progressBar = findViewById(R.id.progressBar);
+        ObjectAnimator animator = ObjectAnimator.ofInt(progressBar, "progress", 0, 100);
+        animator.setDuration(3000); // Animation duration: 3 second
+        animator.setInterpolator(new AccelerateDecelerateInterpolator());
+        animator.start();
     }
 }
