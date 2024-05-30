@@ -46,7 +46,7 @@ public class RSSUtils {
             } else if (eventType == XmlPullParser.END_TAG && parser.getName().equalsIgnoreCase("item")) {
                 insideItem = false;
 
-                if (currentItem.getImage() != null)
+                if (currentItem != null && currentItem.getImage() != null && currentItem.getImage() != "")
                     items.add(currentItem);
                 if (items.size() == 1) {
                     editor.putString("lastPublishedLink", currentItem.getLink());
