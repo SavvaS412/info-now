@@ -7,14 +7,17 @@
     tools:context=".MainActivity">
 
     <RelativeLayout
-        android:layout_width="match_parent"
+        android:id="@+id/relativeLayout"
+        android:layout_width="0dp"
         android:layout_height="match_parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
         <RelativeLayout
+            android:id="@+id/menu_bar"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/menu_bar">
+            android:layout_height="wrap_content">
 
             <ImageButton
                 android:id="@+id/home_button"
@@ -44,34 +47,38 @@
             android:id="@+id/fragment_container"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_below="@id/menu_bar"/>
+            android:layout_below="@id/menu_bar" />
     </RelativeLayout>
 
     <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
         android:id="@+id/splash"
-        android:background="#FFFFFF">
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="#FFFFFF"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
         <ImageView
-            android:layout_centerInParent="true"
             android:id="@+id/imageView"
             android:layout_width="164dp"
             android:layout_height="164dp"
-            android:src="@drawable/i"
+            android:layout_centerInParent="true"
+            android:background="@null"
             android:scaleType="centerCrop"
-            android:background="@null"/>
+            android:src="@drawable/i" />
 
         <ProgressBar
             android:id="@+id/progressBar"
+            style="@style/Widget.AppCompat.ProgressBar.Horizontal"
             android:layout_width="128dp"
             android:layout_height="16dp"
             android:layout_below="@id/imageView"
-            android:layout_marginTop="16dp"
             android:layout_centerInParent="true"
-            style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+            android:layout_marginTop="16dp"
             android:indeterminate="false"
             android:progress="0"
-            android:progressBackgroundTint="#597CFF"/>
+            android:progressBackgroundTint="#597CFF" />
     </RelativeLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

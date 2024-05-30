@@ -39,12 +39,12 @@
         android:gravity="center"
         >
         <EditText
-            android:id="@+id/editTextUsername"
+            android:id="@+id/editTextEmail"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="24sp"
-            android:hint="Username"
-            android:inputType="textPersonName"
+            android:hint="Email"
+            android:inputType="textEmailAddress"
             android:selectAllOnFocus="true"
             android:autofillHints="name" />
 
@@ -73,7 +73,7 @@
             android:layout_width="256dp"
             android:layout_height="64dp"
             android:enabled="true"
-            android:text="Log in as Guest"
+            android:text="Continue as Guest"
             android:backgroundTint="#AAA"/>
     </LinearLayout>
 

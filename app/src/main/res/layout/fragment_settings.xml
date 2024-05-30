@@ -1,14 +1,74 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".SettingsFragment">
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="@string/hello_blank_fragment" />
+        android:layout_height="match_parent">
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/profileCard"
+            android:layout_width="128dp"
+            android:layout_height="128dp"
+            app:cardElevation="8dp"
+            app:cardCornerRadius="64dp"
+            android:layout_marginTop="32dp"
+            android:layout_centerHorizontal="true">
+
+            <ImageView
+                android:id="@+id/profileImage"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/guest"
+                android:scaleType="centerCrop"/>
+        </androidx.cardview.widget.CardView>
+
+        <TextView
+            android:id="@+id/profileName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/profileCard"
+            android:text="Guest"
+            android:layout_marginTop="8dp"
+            android:layout_marginHorizontal="64dp"
+            android:textSize="36sp"
+            android:gravity="center"/>
+
+        <TextView
+            android:id="@+id/profileEmail"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/profileName"
+            android:text="example@gmail.com"
+            android:layout_marginTop="4dp"
+            android:layout_marginHorizontal="64dp"
+            android:textSize="16sp"
+            android:gravity="center"/>
+
+        <Button
+            android:id="@+id/profileLogin"
+            android:layout_width="160dp"
+            android:layout_height="64dp"
+            android:layout_below="@+id/profileEmail"
+            android:layout_centerHorizontal="true"
+            android:visibility="gone"
+            android:text="Login"
+            android:backgroundTint="@color/i"
+            android:layout_marginTop="32dp"/>
+
+        <Button
+            android:id="@+id/profileSignOut"
+            android:layout_width="160dp"
+            android:layout_height="64dp"
+            android:layout_below="@+id/profileLogin"
+            android:layout_centerHorizontal="true"
+            android:text="Sign Out"
+            android:backgroundTint="#FF3a3a"
+            android:layout_marginTop="32dp"/>
+    </RelativeLayout>
 
 </FrameLayout>

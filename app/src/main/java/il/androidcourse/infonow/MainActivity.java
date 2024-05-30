@@ -11,6 +11,8 @@ import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
+import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 
@@ -47,6 +49,9 @@ public class MainActivity extends AppCompatActivity {
     private HandlerThread handlerThread;
     private Handler backgroundHandler;
     private NewsFragment newsFragment;
+    private ImageButton btnHome;
+    private ImageButton btnSettings;
+    private boolean firstRun = true;
 
     private FirebaseAuth auth;
     private FirebaseUser user;
@@ -58,8 +63,7 @@ public class MainActivity extends AppCompatActivity {
         auth = FirebaseAuth.getInstance();
         user = auth.getCurrentUser();
         if (user == null) {
-            startActivity(new Intent(MainActivity.this, AuthActivity.class));
-            finish();
+            navigateToAuthentication();
         }
         else {
             startProgressBar();
@@ -75,23 +79,48 @@ public class MainActivity extends AppCompatActivity {
                 notificationManager.cancelAll();
             }
 
-            mainHandler = new Handler(Looper.getMainLooper());
+            btnHome = findViewById(R.id.home_button);
+            btnSettings = findViewById(R.id.settings_button);
 
-            handlerThread = new HandlerThread("RSSHandlerThread");
-            handlerThread.start();
-
-            backgroundHandler = new Handler(handlerThread.getLooper());
-
-            backgroundHandler.post(new FetchRSSItemsTask(true));
             home();
         }
     }
 
+    public void navigateToAuthentication() {
+        startActivity(new Intent(MainActivity.this, AuthActivity.class));
+        finish();
+    }
+
     private void home() {
-        newsFragment = new NewsFragment();
+        btnHome.setOnClickListener(v -> {});
+
+        mainHandler = new Handler(Looper.getMainLooper());
+
+        handlerThread = new HandlerThread("RSSHandlerThread");
+        handlerThread.start();
+
+        backgroundHandler = new Handler(handlerThread.getLooper());
+
+        backgroundHandler.post(new FetchRSSItemsTask(true));
+
+        if (newsFragment == null)
+            newsFragment = new NewsFragment();
+
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         transaction.replace(R.id.fragment_container, newsFragment);
         transaction.commit();
+        btnSettings.setOnClickListener(v -> settings());
+    }
+
+    private void settings() {
+        btnSettings.setOnClickListener(v -> {});
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        transaction.replace(R.id.fragment_container, new SettingsFragment());
+        transaction.commit();
+
+        if (handlerThread != null)
+            handlerThread.quitSafely();
+        btnHome.setOnClickListener(v -> home());
     }
 
     private List<RSSItem> fetchRSSItems(boolean allItems) {

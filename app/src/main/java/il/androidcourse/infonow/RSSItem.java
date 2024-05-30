@@ -1,8 +1,10 @@
 package il.androidcourse.infonow;
 
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
+import java.util.TimeZone;
 
 public class RSSItem {
     private String title;
@@ -41,8 +43,13 @@ public class RSSItem {
     }
 
     public String getHourAndMinutes() {
+        Calendar gmt3Calendar = Calendar.getInstance(TimeZone.getTimeZone("GMT+3"));
+        gmt3Calendar.setTime(pubDate);
+        gmt3Calendar.add(Calendar.HOUR_OF_DAY, -3);
+
         SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm", Locale.getDefault());
-        return dateFormat.format(getPubDate());
+
+        return dateFormat.format(gmt3Calendar.getTime());
     }
 
     public void setPubDate(Date pubDate) {
