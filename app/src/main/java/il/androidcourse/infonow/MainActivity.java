@@ -52,7 +52,6 @@ public class MainActivity extends AppCompatActivity {
     private ImageButton btnHome;
     private ImageButton btnSettings;
     private boolean firstRun = true;
-    private boolean refreshFragment = false;
 
     private FirebaseAuth auth;
     private FirebaseUser user;
@@ -102,9 +101,8 @@ public class MainActivity extends AppCompatActivity {
 
         backgroundHandler = new Handler(handlerThread.getLooper());
 
-        backgroundHandler.post(new FetchRSSItemsTask(firstRun, refreshFragment));
+        backgroundHandler.post(new FetchRSSItemsTask(firstRun));
         firstRun = false;
-        refreshFragment = false;
 
         newsFragment = new NewsFragment();
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
@@ -122,7 +120,7 @@ public class MainActivity extends AppCompatActivity {
         newsFragment = null;
         if (handlerThread != null)
             handlerThread.quitSafely();
-        btnHome.setOnClickListener(v -> {firstRun = true; refreshFragment = true; home();});
+        btnHome.setOnClickListener(v -> {firstRun = true; home();});
     }
 
     private List<RSSItem> fetchRSSItems(boolean allItems) {
@@ -156,9 +154,8 @@ public class MainActivity extends AppCompatActivity {
         private boolean firstRun;
         private boolean refreshFragment;
 
-        FetchRSSItemsTask(boolean firstRun, boolean refreshFragment) {
+        FetchRSSItemsTask(boolean firstRun) {
             this.firstRun = firstRun;
-            this.refreshFragment = refreshFragment;
         }
 
         private void waitForRSS() {
@@ -175,14 +172,11 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void run() {
             if (firstRun) {
-                if (true) {
-                    List<RSSItem> items = fetchRSSItems(true);
-                    rssItems.clear();
-                    rssItems.addAll(items);
-                }
+                List<RSSItem> items = fetchRSSItems(true);
+                rssItems.clear();
+                rssItems.addAll(items);
                 mainHandler.post(() -> {waitForRSS();});
                 firstRun = false;
-                refreshFragment = false;
             } else {
                 Log.d(TAG, "run: fetch New RSS Items");
                 List<RSSItem> newItems = fetchRSSItems(false);
