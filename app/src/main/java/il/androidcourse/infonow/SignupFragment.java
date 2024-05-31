@@ -14,6 +14,7 @@ import androidx.fragment.app.Fragment;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.UserProfileChangeRequest;
 
 public class SignupFragment extends Fragment {
 
@@ -47,6 +48,7 @@ public class SignupFragment extends Fragment {
 
     private void signupUser() {
         String email = editTextEmail.getText().toString().trim();
+        String name = editTextUsername.getText().toString().trim();
         String password = editTextPassword.getText().toString().trim();
 
         if (email.isEmpty() || password.isEmpty()) {
@@ -57,6 +59,12 @@ public class SignupFragment extends Fragment {
         auth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(requireActivity(), task -> {
                     if (task.isSuccessful()) {
+                        UserProfileChangeRequest userProfile = new UserProfileChangeRequest.Builder()
+                                .setDisplayName(name).build();
+
+                        FirebaseUser user = auth.getCurrentUser();
+                        user.updateProfile(userProfile);
+
                         // Sign up success, navigate to MainActivity
                         ((AuthActivity) requireActivity()).navigateToMainActivity();
                     } else {

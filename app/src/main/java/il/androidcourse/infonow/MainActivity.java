@@ -52,6 +52,7 @@ public class MainActivity extends AppCompatActivity {
     private ImageButton btnHome;
     private ImageButton btnSettings;
     private boolean firstRun = true;
+    private boolean refreshFragment = false;
 
     private FirebaseAuth auth;
     private FirebaseUser user;
@@ -101,11 +102,11 @@ public class MainActivity extends AppCompatActivity {
 
         backgroundHandler = new Handler(handlerThread.getLooper());
 
-        backgroundHandler.post(new FetchRSSItemsTask(true));
+        backgroundHandler.post(new FetchRSSItemsTask(firstRun, refreshFragment));
+        firstRun = false;
+        refreshFragment = false;
 
-        if (newsFragment == null)
-            newsFragment = new NewsFragment();
-
+        newsFragment = new NewsFragment();
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         transaction.replace(R.id.fragment_container, newsFragment);
         transaction.commit();
@@ -118,9 +119,10 @@ public class MainActivity extends AppCompatActivity {
         transaction.replace(R.id.fragment_container, new SettingsFragment());
         transaction.commit();
 
+        newsFragment = null;
         if (handlerThread != null)
             handlerThread.quitSafely();
-        btnHome.setOnClickListener(v -> home());
+        btnHome.setOnClickListener(v -> {firstRun = true; refreshFragment = true; home();});
     }
 
     private List<RSSItem> fetchRSSItems(boolean allItems) {
@@ -152,27 +154,35 @@ public class MainActivity extends AppCompatActivity {
 
     private class FetchRSSItemsTask implements Runnable {
         private boolean firstRun;
+        private boolean refreshFragment;
 
-        FetchRSSItemsTask(boolean firstRun) {
+        FetchRSSItemsTask(boolean firstRun, boolean refreshFragment) {
             this.firstRun = firstRun;
+            this.refreshFragment = refreshFragment;
+        }
+
+        private void waitForRSS() {
+            while (!(newsFragment != null && rssItems != null)) {
+                try {
+                    Thread.sleep(50); // Sleep for 50 milliseconds
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            newsFragment.setRSSItems(rssItems);
         }
 
         @Override
         public void run() {
             if (firstRun) {
-                List<RSSItem> items = fetchRSSItems(true);
-                rssItems.addAll(items);
-                mainHandler.post(() -> {
-                    while (!(newsFragment != null && rssItems != null)) {
-                        try {
-                            Thread.sleep(50); // Sleep for 50 milliseconds
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                    newsFragment.setRSSItems(rssItems);
-                });
+                if (true) {
+                    List<RSSItem> items = fetchRSSItems(true);
+                    rssItems.clear();
+                    rssItems.addAll(items);
+                }
+                mainHandler.post(() -> {waitForRSS();});
                 firstRun = false;
+                refreshFragment = false;
             } else {
                 Log.d(TAG, "run: fetch New RSS Items");
                 List<RSSItem> newItems = fetchRSSItems(false);

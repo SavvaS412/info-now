@@ -41,6 +41,10 @@ public class NewsFragment extends Fragment {
         return view;
     }
 
+    public RSSItemAdapter getAdapter() {
+        return adapter;
+    }
+
     public void setRSSItems(List<RSSItem> items) {
         adapter.setRSSItems(items);
     }
