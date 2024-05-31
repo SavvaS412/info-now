@@ -11,6 +11,8 @@ import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
+import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 
@@ -47,6 +49,9 @@ public class MainActivity extends AppCompatActivity {
     private HandlerThread handlerThread;
     private Handler backgroundHandler;
     private NewsFragment newsFragment;
+    private ImageButton btnHome;
+    private ImageButton btnSettings;
+    private boolean firstRun = true;
 
     private FirebaseAuth auth;
     private FirebaseUser user;
@@ -58,8 +63,7 @@ public class MainActivity extends AppCompatActivity {
         auth = FirebaseAuth.getInstance();
         user = auth.getCurrentUser();
         if (user == null) {
-            startActivity(new Intent(MainActivity.this, AuthActivity.class));
-            finish();
+            navigateToAuthentication();
         }
         else {
             startProgressBar();
@@ -75,23 +79,48 @@ public class MainActivity extends AppCompatActivity {
                 notificationManager.cancelAll();
             }
 
-            mainHandler = new Handler(Looper.getMainLooper());
+            btnHome = findViewById(R.id.home_button);
+            btnSettings = findViewById(R.id.settings_button);
 
-            handlerThread = new HandlerThread("RSSHandlerThread");
-            handlerThread.start();
-
-            backgroundHandler = new Handler(handlerThread.getLooper());
-
-            backgroundHandler.post(new FetchRSSItemsTask(true));
             home();
         }
     }
 
+    public void navigateToAuthentication() {
+        startActivity(new Intent(MainActivity.this, AuthActivity.class));
+        finish();
+    }
+
     private void home() {
+        btnHome.setOnClickListener(v -> {});
+
+        mainHandler = new Handler(Looper.getMainLooper());
+
+        handlerThread = new HandlerThread("RSSHandlerThread");
+        handlerThread.start();
+
+        backgroundHandler = new Handler(handlerThread.getLooper());
+
+        backgroundHandler.post(new FetchRSSItemsTask(firstRun));
+        firstRun = false;
+
         newsFragment = new NewsFragment();
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         transaction.replace(R.id.fragment_container, newsFragment);
         transaction.commit();
+        btnSettings.setOnClickListener(v -> settings());
+    }
+
+    private void settings() {
+        btnSettings.setOnClickListener(v -> {});
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        transaction.replace(R.id.fragment_container, new SettingsFragment());
+        transaction.commit();
+
+        newsFragment = null;
+        if (handlerThread != null)
+            handlerThread.quitSafely();
+        btnHome.setOnClickListener(v -> {firstRun = true; home();});
     }
 
     private List<RSSItem> fetchRSSItems(boolean allItems) {
@@ -123,26 +152,30 @@ public class MainActivity extends AppCompatActivity {
 
     private class FetchRSSItemsTask implements Runnable {
         private boolean firstRun;
+        private boolean refreshFragment;
 
         FetchRSSItemsTask(boolean firstRun) {
             this.firstRun = firstRun;
+        }
+
+        private void waitForRSS() {
+            while (!(newsFragment != null && rssItems != null)) {
+                try {
+                    Thread.sleep(50); // Sleep for 50 milliseconds
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            newsFragment.setRSSItems(rssItems);
         }
 
         @Override
         public void run() {
             if (firstRun) {
                 List<RSSItem> items = fetchRSSItems(true);
+                rssItems.clear();
                 rssItems.addAll(items);
-                mainHandler.post(() -> {
-                    while (!(newsFragment != null && rssItems != null)) {
-                        try {
-                            Thread.sleep(50); // Sleep for 50 milliseconds
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                    newsFragment.setRSSItems(rssItems);
-                });
+                mainHandler.post(() -> {waitForRSS();});
                 firstRun = false;
             } else {
                 Log.d(TAG, "run: fetch New RSS Items");
