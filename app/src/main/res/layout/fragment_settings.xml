@@ -69,6 +69,112 @@
             android:text="Sign Out"
             android:backgroundTint="#FF3a3a"
             android:layout_marginTop="32dp"/>
+
+        <TextView
+            android:id="@+id/syncSettings"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sync Settings"
+            android:layout_marginTop="32dp"
+            android:layout_marginLeft="64dp"
+            android:layout_alignParentLeft="true"
+            android:textSize="26sp"
+            android:layout_below="@+id/profileSignOut"
+            />
+
+        <Switch
+            android:id="@+id/syncSettingsSwitch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:layout_marginRight="64dp"
+            android:layout_below="@+id/profileSignOut"
+            android:layoutDirection="ltr"
+            android:layout_alignParentRight="true"
+            android:gravity="center"
+            android:textSize="26sp"/>
+
+        <TextView
+            android:id="@+id/sources"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sources"
+            android:textSize="26sp"
+            android:layout_below="@+id/syncSettings"
+            android:layout_marginTop="16dp"
+            android:layout_alignParentLeft="true"
+            android:layout_marginLeft="64dp"
+            />
+
+        <RelativeLayout
+            android:orientation="horizontal"
+            android:layoutDirection="ltr"
+            android:id="@+id/sourcesImages"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/sources"
+            android:layout_marginTop="8dp"
+            android:layout_marginHorizontal="64dp">
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:src="@drawable/israel_hayom_small"
+                android:layout_alignParentLeft="true"/>
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:src="@drawable/mako_small"
+                android:layout_centerInParent="true"/>
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:src="@drawable/haaretz_small"
+                android:layout_alignParentRight="true"/>
+        </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/sourcesImages"
+        android:layout_marginTop="4dp"
+        android:layout_marginHorizontal="64dp">
+
+        <Switch
+            android:id="@+id/israel_hayom_switch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layoutDirection="ltr"
+            android:gravity="center"
+            android:layout_marginHorizontal="16dp"
+            android:layout_alignParentLeft="true"
+            android:textSize="26sp"/>
+
+        <Switch
+            android:id="@+id/mako_switch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:layoutDirection="ltr"
+            android:gravity="center"
+            android:textSize="26sp"/>
+
+        <Switch
+            android:id="@+id/haaretz_switch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_marginHorizontal="16dp"
+            android:layoutDirection="ltr"
+            android:gravity="center"
+            android:textSize="26sp"/>
+
+
+
+
+    </RelativeLayout>
+
     </RelativeLayout>
 
 </FrameLayout>

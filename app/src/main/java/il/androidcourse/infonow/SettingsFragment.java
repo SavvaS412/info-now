@@ -4,6 +4,7 @@ import static android.app.Activity.RESULT_OK;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 
@@ -19,6 +20,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -46,6 +48,12 @@ public class SettingsFragment extends Fragment {
     private Button btnSignOut;
 
     Uri imageUri;
+
+    public static final String PREFS_NAME = "user";
+    Switch syncSettings;
+    Switch israelHayom;
+    Switch mako;
+    Switch haaretz;
 
     private final ActivityResultLauncher<Intent> activityResultLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
@@ -80,6 +88,34 @@ public class SettingsFragment extends Fragment {
         user = auth.getCurrentUser();
         storageReference = FirebaseStorage.getInstance().getReference();
 
+        syncSettings = (Switch) view.findViewById(R.id.syncSettingsSwitch);
+        israelHayom = (Switch) view.findViewById(R.id.israel_hayom_switch);
+        mako = (Switch) view.findViewById(R.id.mako_switch);
+        haaretz = (Switch) view.findViewById(R.id.haaretz_switch);
+
+        Context context = getContext();
+        SharedPreferences userPreferences = context.getSharedPreferences(PREFS_NAME, 0);
+        SharedPreferences.Editor editor = userPreferences.edit();
+        boolean isSyncSettingsEnabled = userPreferences.getBoolean("syncSettings", true);
+
+        if (isSyncSettingsEnabled)
+        {
+            // TODO: load from db
+        }
+        else
+        {
+            loadSettingsSharedPreferences(userPreferences);
+        }
+
+        syncSettings.setChecked(isSyncSettingsEnabled);
+
+        syncSettings.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked) {
+                // TODO: load from db
+            } else {
+            }
+        });
+
         if (user == null || user.isAnonymous())
             viewGuest(view);
         else
@@ -87,6 +123,35 @@ public class SettingsFragment extends Fragment {
 
         // Inflate the layout for this fragment
         return view;
+    }
+
+    private void loadSettingsSharedPreferences(SharedPreferences userPreferences) {
+        boolean isIsraelHayomEnabled = userPreferences.getBoolean("israelHayom", true);
+        boolean isMakoEnabled = userPreferences.getBoolean("mako", true);
+        boolean isHaaretzEnabled = userPreferences.getBoolean("haaretz", true);
+        israelHayom.setChecked(isIsraelHayomEnabled);
+        mako.setChecked(isMakoEnabled);
+        haaretz.setChecked(isHaaretzEnabled);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        Context context = getContext();
+        SharedPreferences userPreferences = context.getSharedPreferences(PREFS_NAME, 0);
+        SharedPreferences.Editor editor = userPreferences.edit();
+        editor.putBoolean("syncSettings", syncSettings.isChecked());
+        if (user == null || user.isAnonymous() || !syncSettings.isChecked())    // save to SharedPreferences
+        {
+            editor.putBoolean("israelHayom", israelHayom.isChecked());
+            editor.putBoolean("mako", mako.isChecked());
+            editor.putBoolean("haaretz", haaretz.isChecked());
+        }
+        else    // save to Firestore
+        {
+            // TODO: save to Firestore
+        }
+        editor.commit();
     }
 
     private void viewGuest(View view) {
