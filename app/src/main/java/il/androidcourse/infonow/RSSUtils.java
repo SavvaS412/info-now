@@ -21,7 +21,9 @@ public class RSSUtils {
         RSSItem currentItem = null;
         SharedPreferences internalPreferences = context.getSharedPreferences(PREFS_NAME, 0);
         SharedPreferences.Editor editor = internalPreferences.edit();
-        String lastPublishedLink = internalPreferences.getString("lastPublishedLink", "default_value");
+        String lastPublishedDateStr = internalPreferences.getString("lastPublishedDate", "default_value");
+        SimpleDateFormat format = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z", Locale.ENGLISH);
+        Date lastPublishedDate = lastPublishedDateStr.equals("default_value") ? null : format.parse(lastPublishedDateStr);
 
         int eventType = parser.getEventType();
         while (eventType != XmlPullParser.END_DOCUMENT) {
@@ -35,7 +37,6 @@ public class RSSUtils {
                     currentItem.setDescription(parser.nextText());
                 } else if (parser.getName().equalsIgnoreCase("pubDate") && insideItem) {
                     String dateString = parser.nextText();
-                    SimpleDateFormat format = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z", Locale.ENGLISH);
                     Date pubDate = format.parse(dateString);
                     currentItem.setPubDate(pubDate);
                 } else if (parser.getName().equalsIgnoreCase("link") && insideItem) {
@@ -49,7 +50,7 @@ public class RSSUtils {
                 if (currentItem != null && currentItem.getImage() != null && currentItem.getImage() != "")
                     items.add(currentItem);
                 if (items.size() == 1) {
-                    editor.putString("lastPublishedLink", currentItem.getLink());
+                    editor.putString("lastPublishedDate", format.format(currentItem.getPubDate()));
                     editor.apply();
                 }
             }
@@ -65,7 +66,9 @@ public class RSSUtils {
         RSSItem currentItem = null;
         SharedPreferences internalPreferences = context.getSharedPreferences(PREFS_NAME, 0);
         SharedPreferences.Editor editor = internalPreferences.edit();
-        String lastPublishedLink = internalPreferences.getString("lastPublishedLink", "default_value");
+        String lastPublishedDateStr = internalPreferences.getString("lastPublishedDate", "default_value");
+        SimpleDateFormat format = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z", Locale.ENGLISH);
+        Date lastPublishedDate = lastPublishedDateStr.equals("default_value") ? null : format.parse(lastPublishedDateStr);
 
         int eventType = parser.getEventType();
         while (eventType != XmlPullParser.END_DOCUMENT) {
@@ -79,7 +82,6 @@ public class RSSUtils {
                     currentItem.setDescription(parser.nextText());
                 } else if (parser.getName().equalsIgnoreCase("pubDate") && insideItem) {
                     String dateString = parser.nextText();
-                    SimpleDateFormat format = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z", Locale.ENGLISH);
                     Date pubDate = format.parse(dateString);
                     currentItem.setPubDate(pubDate);
                 } else if (parser.getName().equalsIgnoreCase("link") && insideItem) {
@@ -90,13 +92,13 @@ public class RSSUtils {
             } else if (eventType == XmlPullParser.END_TAG && parser.getName().equalsIgnoreCase("item")) {
                 insideItem = false;
 
-                if (currentItem != null && Objects.equals(currentItem.getLink(), lastPublishedLink))
+                if (currentItem != null && lastPublishedDate != null && currentItem.getPubDate().compareTo(lastPublishedDate) <= 0)
                     break;
 
                 if (currentItem != null && currentItem.getImage() != null && currentItem.getImage() != "")
                     items.add(currentItem);
                 if (items.size() == 1) {
-                    editor.putString("lastPublishedLink", currentItem.getLink());
+                    editor.putString("lastPublishedDate", format.format(currentItem.getPubDate()));
                     editor.apply();
                 }
 
