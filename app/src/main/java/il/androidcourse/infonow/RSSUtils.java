@@ -48,8 +48,7 @@ public class RSSUtils {
         else if (urlString.equals(RSS_URL_MAKO))
             items = getMakoRssItems(parser, format, editor);
         else if (urlString.equals(RSS_URL_HAARETZ))
-            //items = getHaaretzRssItems(parser, format, editor);
-            items = new ArrayList<>();
+            items = getHaaretzRssItems(parser, format, editor);
 
         inputStream.close();
 
@@ -158,6 +157,53 @@ public class RSSUtils {
                     currentItem.setLink(parser.nextText());
                 } else if (parser.getName().equalsIgnoreCase("image435X329") && insideItem) {
                     currentItem.setImage(parser.nextText());
+                }
+            } else if (eventType == XmlPullParser.END_TAG && parser.getName().equalsIgnoreCase("item")) {
+                insideItem = false;
+
+                if (currentItem != null && currentItem.getImage() != null && currentItem.getImage() != "")
+                    items.add(currentItem);
+                if (items.size() == 1) {
+                    editor.putString("lastPublishedDate", format.format(currentItem.getPubDate()));
+                    editor.apply();
+                }
+            }
+            eventType = parser.next();
+        }
+
+        return items;
+    }
+
+    private static @NonNull List<RSSItem> getHaaretzRssItems(XmlPullParser parser, SimpleDateFormat format, SharedPreferences.Editor editor) throws XmlPullParserException, IOException, ParseException {
+        List<RSSItem> items = new ArrayList<>();
+        boolean insideItem = false;
+        RSSItem currentItem = null;
+        int eventType = parser.getEventType();
+        while (eventType != XmlPullParser.END_DOCUMENT) {
+            if (eventType == XmlPullParser.START_TAG) {
+                if (parser.getName().equalsIgnoreCase("item")) {
+                    insideItem = true;
+                    currentItem = new RSSItem("", "", null, "", "");
+                } else if (parser.getName().equalsIgnoreCase("title") && insideItem) {
+                    currentItem.setTitle(parser.nextText());
+                } else if (parser.getName().equalsIgnoreCase("description") && insideItem) {
+                    currentItem.setDescription(parser.nextText());
+                } else if (parser.getName().equalsIgnoreCase("pubDate") && insideItem) {
+                    String dateString = parser.nextText();
+                    Date pubDate = format.parse(dateString);
+                    currentItem.setPubDate(pubDate);
+                } else if (parser.getName().equalsIgnoreCase("link") && insideItem) {
+                    currentItem.setLink(parser.nextText());
+                } else if (parser.getName().equalsIgnoreCase("enclosure") && insideItem) {
+                    String imageUrl = parser.getAttributeValue(null, "url");
+                    String baseUrl = imageUrl.split("\\?")[0];
+
+                    // Replace the width parameter with width=480
+                    String modifiedWidthParam = "width=720";
+
+                    // Construct the modified image URL
+                    String modifiedImageUrl = baseUrl + "?" + modifiedWidthParam;
+                    currentItem.setImage(modifiedImageUrl);
                 }
             } else if (eventType == XmlPullParser.END_TAG && parser.getName().equalsIgnoreCase("item")) {
                 insideItem = false;
