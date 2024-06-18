@@ -45,7 +45,7 @@ public class RSSItem {
     public String getHourAndMinutes() {
         Calendar gmt3Calendar = Calendar.getInstance(TimeZone.getTimeZone("GMT+3"));
         gmt3Calendar.setTime(pubDate);
-        gmt3Calendar.add(Calendar.HOUR_OF_DAY, -3);
+        //gmt3Calendar.add(Calendar.HOUR_OF_DAY, -3);
 
         SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm", Locale.getDefault());
 

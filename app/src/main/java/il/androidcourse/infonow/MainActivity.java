@@ -126,23 +126,12 @@ public class MainActivity extends AppCompatActivity {
     private List<RSSItem> fetchRSSItems(boolean allItems) {
         List<RSSItem> items;
         try {
-            // Fetch RSS feed
-            URL url = new URL(RSSUtils.RSS_URL);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            InputStream inputStream = connection.getInputStream();
-
-            // Parse XML
-            XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
-            XmlPullParser parser = factory.newPullParser();
-            parser.setInput(inputStream, null);
-
             Context context = MainActivity.this; // Use the appropriate context here
             if (allItems)
-                items = RSSUtils.parseRSS(parser, context);
+                items = RSSUtils.parseRSS(context);
             else
-                items = RSSUtils.parseNewRSS(parser, context, 999);
+                items = RSSUtils.parseNewRSS(context, 999);
 
-            inputStream.close();
         } catch (Exception e) {
             Log.e(TAG, "Error fetching RSS feed: " + e.getMessage(), e);
             return Collections.<RSSItem>emptyList();

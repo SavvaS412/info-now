@@ -1,6 +1,5 @@
 package il.androidcourse.infonow;
 import static il.androidcourse.infonow.RSSUtils.PREFS_NAME;
-import static il.androidcourse.infonow.RSSUtils.RSS_URL;
 
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -47,24 +46,12 @@ public class RSSWorker extends Worker {
         Log.d(TAG, "RSSWorker started");
 
         try {
-            // Fetch RSS feed
-            URL url = new URL(RSS_URL);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            InputStream inputStream = connection.getInputStream();
-
-            // Parse XML
-            XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
-            XmlPullParser parser = factory.newPullParser();
-            parser.setInput(inputStream, null);
-
             Context context = getApplicationContext(); // Use the appropriate context here
-            List<RSSItem> newItems = RSSUtils.parseNewRSS(parser, context, MAX_NOTIFICATIONS);
+            List<RSSItem> newItems = RSSUtils.parseNewRSS(context, MAX_NOTIFICATIONS);
 
             if (!newItems.isEmpty()) {
                 showNotifications(newItems);
             }
-
-            inputStream.close();
         } catch (Exception e) {
             Log.e(TAG, "Error fetching RSS feed: " + e.getMessage(), e);
             return Result.failure();
