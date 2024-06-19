@@ -15,6 +15,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,15 +26,23 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.Firebase;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
+
+import java.util.HashMap;
+import java.util.Map;
 
 
 public class SettingsFragment extends Fragment {
@@ -100,7 +109,7 @@ public class SettingsFragment extends Fragment {
 
         if (isSyncSettingsEnabled)
         {
-            // TODO: load from db
+            loadSettingsFirestore();
         }
         else
         {
@@ -111,7 +120,7 @@ public class SettingsFragment extends Fragment {
 
         syncSettings.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isChecked) {
-                // TODO: load from db
+                loadSettingsFirestore();
             } else {
             }
         });
@@ -123,6 +132,37 @@ public class SettingsFragment extends Fragment {
 
         // Inflate the layout for this fragment
         return view;
+    }
+
+    private void loadSettingsFirestore() {
+        // Get an instance of Firebase Firestore
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        DocumentReference userDocRef = db.collection("users").document(user.getUid());
+
+        // Get the user settings document asynchronously
+        userDocRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if (task.isSuccessful() && task.getResult().exists()) {
+                    // Get the data from the document
+                    Map<String, Object> userSettings = task.getResult().getData();
+                    if (userSettings != null) {
+                        boolean isIsraelHayomEnabled = userSettings.get("israel_hayom") instanceof Boolean ? (boolean) userSettings.get("israel_hayom") : false;
+                        boolean isMakoEnabled = userSettings.get("mako") instanceof Boolean ? (boolean) userSettings.get("mako") : false;
+                        boolean isHaaretzEnabled = userSettings.get("haaretz") instanceof Boolean ? (boolean) userSettings.get("haaretz") : false;
+
+                        // Update the switch states
+                        israelHayom.setChecked(isIsraelHayomEnabled);
+                        mako.setChecked(isMakoEnabled);
+                        haaretz.setChecked(isHaaretzEnabled);
+                    } else {
+                        Log.w("Firestore", "User settings document is empty");
+                    }
+                } else {
+                    Log.w("Firestore", "Error getting user settings document", task.getException());
+                }
+            }
+        });
     }
 
     private void loadSettingsSharedPreferences(SharedPreferences userPreferences) {
@@ -149,7 +189,32 @@ public class SettingsFragment extends Fragment {
         }
         else    // save to Firestore
         {
-            // TODO: save to Firestore
+            // Get an instance of Firebase Firestore
+            FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+            // Create a new document or update an existing one in the "userSettings" collection
+            Map<String, Object> userSettings = new HashMap<>();
+            userSettings.put("israel_hayom", israelHayom.isChecked());
+            userSettings.put("mako", mako.isChecked());
+            userSettings.put("haaretz", haaretz.isChecked());
+
+            db.collection("users").document(user.getUid())  // Use user's unique ID here
+                    .set(userSettings)
+                    .addOnSuccessListener(new OnSuccessListener<Void>() {
+                        @Override
+                        public void onSuccess(Void aVoid) {
+                            Log.d("Firestore", "User settings saved successfully!");
+                            editor.putBoolean("israelHayom", israelHayom.isChecked());
+                            editor.putBoolean("mako", mako.isChecked());
+                            editor.putBoolean("haaretz", haaretz.isChecked());
+                        }
+                    })
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            Log.w("Firestore", "Error saving user settings", e);
+                        }
+                    });
         }
         editor.commit();
     }
@@ -157,6 +222,9 @@ public class SettingsFragment extends Fragment {
     private void viewGuest(View view) {
         btnSignOut.setVisibility(View.GONE);
         profileEmail.setVisibility(View.GONE);
+
+        syncSettings.setChecked(false);
+        syncSettings.setEnabled(false);
 
         btnLogin.setVisibility(View.VISIBLE);
         profileName.setText("Guest");
