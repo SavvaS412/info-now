@@ -1,5 +1,5 @@
 package il.androidcourse.infonow;
-import static il.androidcourse.infonow.RSSUtils.PREFS_NAME;
+import static il.androidcourse.infonow.RSSUtils.PREFS_NAME_INTERNAL;
 
 import android.app.Notification;
 import android.app.NotificationChannel;

@@ -27,7 +27,8 @@ public class RSSUtils {
     public static final String RSS_URL_ISRAEL_HAYOM = "https://www.israelhayom.co.il/rss.xml";
     public static final String RSS_URL_MAKO = "https://rcs.mako.co.il/rss/31750a2610f26110VgnVCM1000005201000aRCRD.xml";
     public static final String RSS_URL_HAARETZ = "https://www.haaretz.co.il/srv/rss---feedly ";
-    public static final String PREFS_NAME = "internal";
+    public static final String PREFS_NAME_INTERNAL = "internal";
+    public static final String PREFS_NAME_USER = "user";
 
     public static List<RSSItem> fetchRSSSource(String urlString, SimpleDateFormat format, SharedPreferences.Editor editor) throws Exception
     {
@@ -77,18 +78,20 @@ public class RSSUtils {
     public static List<RSSItem> parseRSS(Context context) throws Exception {
         List<RSSItem> itemsAll = new ArrayList<>();
 
-        SharedPreferences internalPreferences = context.getSharedPreferences(PREFS_NAME, 0);
+        SharedPreferences internalPreferences = context.getSharedPreferences(PREFS_NAME_INTERNAL, 0);
+        SharedPreferences userPreferences = context.getSharedPreferences(PREFS_NAME_USER, 0);
         SharedPreferences.Editor editor = internalPreferences.edit();
-        String lastPublishedDateStr = internalPreferences.getString("lastPublishedDate", "default_value");
         SimpleDateFormat format = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z", Locale.ENGLISH);
-        Date lastPublishedDate = lastPublishedDateStr.equals("default_value") ? null : format.parse(lastPublishedDateStr);
 
-        if (internalPreferences.getBoolean("israelHayom", true))
+        if (userPreferences.getBoolean("israelHayom", true))
             itemsAll.addAll(fetchRSSSource(RSS_URL_ISRAEL_HAYOM, format, editor));
-        if (internalPreferences.getBoolean("mako", true))
+        if (userPreferences.getBoolean("mako", true))
             itemsAll.addAll(fetchRSSSource(RSS_URL_MAKO, format, editor));
-        if (internalPreferences.getBoolean("haaretz", true))
+        if (userPreferences.getBoolean("haaretz", true))
             itemsAll.addAll(fetchRSSSource(RSS_URL_HAARETZ, format, editor));
+
+        editor.putString("lastPublishedDate", format.format(new Date()));
+        editor.apply();
 
         Comparator<RSSItem> comparator = Comparator.comparing(RSSItem::getPubDate);
         Collections.sort(itemsAll, comparator);
@@ -124,10 +127,6 @@ public class RSSUtils {
 
                 if (currentItem != null && currentItem.getImage() != null && currentItem.getImage() != "")
                     items.add(currentItem);
-                if (items.size() == 1) {
-                    editor.putString("lastPublishedDate", format.format(currentItem.getPubDate()));
-                    editor.apply();
-                }
             }
             eventType = parser.next();
         }
@@ -163,10 +162,6 @@ public class RSSUtils {
 
                 if (currentItem != null && currentItem.getImage() != null && currentItem.getImage() != "")
                     items.add(currentItem);
-                if (items.size() == 1) {
-                    editor.putString("lastPublishedDate", format.format(currentItem.getPubDate()));
-                    editor.apply();
-                }
             }
             eventType = parser.next();
         }
@@ -210,10 +205,6 @@ public class RSSUtils {
 
                 if (currentItem != null && currentItem.getImage() != null && currentItem.getImage() != "")
                     items.add(currentItem);
-                if (items.size() == 1) {
-                    editor.putString("lastPublishedDate", format.format(currentItem.getPubDate()));
-                    editor.apply();
-                }
             }
             eventType = parser.next();
         }
@@ -224,19 +215,22 @@ public class RSSUtils {
     public static List<RSSItem> parseNewRSS(Context context, int max_notifications) throws Exception {
         List<RSSItem> itemsAll = new ArrayList<>();
 
-        SharedPreferences internalPreferences = context.getSharedPreferences(PREFS_NAME, 0);
+        SharedPreferences internalPreferences = context.getSharedPreferences(PREFS_NAME_INTERNAL, 0);
+        SharedPreferences userPreferences = context.getSharedPreferences(PREFS_NAME_USER, 0);
         SharedPreferences.Editor editor = internalPreferences.edit();
         String lastPublishedDateStr = internalPreferences.getString("lastPublishedDate", "default_value");
         SimpleDateFormat format = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss Z", Locale.ENGLISH);
         Date lastPublishedDate = lastPublishedDateStr.equals("default_value") ? null : format.parse(lastPublishedDateStr);
 
-
-        if (internalPreferences.getBoolean("israelHayom", true))
+        if (userPreferences.getBoolean("israelHayom", true))
             itemsAll.addAll(fetchRSSNewSource(RSS_URL_ISRAEL_HAYOM, format, editor, max_notifications, lastPublishedDate));;
+        if (userPreferences.getBoolean("mako", true))
+            itemsAll.addAll(fetchRSSNewSource(RSS_URL_MAKO, format, editor, max_notifications, lastPublishedDate));
+        if (userPreferences.getBoolean("haaretz", true))
+            itemsAll.addAll(fetchRSSNewSource(RSS_URL_HAARETZ, format, editor, max_notifications, lastPublishedDate));
 
         Comparator<RSSItem> comparator = Comparator.comparing(RSSItem::getPubDate);
         Collections.sort(itemsAll, comparator);
-        Collections.reverse(itemsAll);
         return itemsAll;
     }
 
@@ -271,10 +265,96 @@ public class RSSUtils {
 
                 if (currentItem != null && currentItem.getImage() != null && currentItem.getImage() != "")
                     items.add(currentItem);
-                if (items.size() == 1) {
-                    editor.putString("lastPublishedDate", format.format(currentItem.getPubDate()));
-                    editor.apply();
+
+                if (items.size() >= max_notifications)      // limit the number of notifications at a time
+                    break;
+            }
+            eventType = parser.next();
+        }
+
+        return items;
+    }
+
+    private static @NonNull List<RSSItem> getMakoNewRssItems(XmlPullParser parser, int max_notifications, SimpleDateFormat format, Date lastPublishedDate, SharedPreferences.Editor editor) throws XmlPullParserException, IOException, ParseException {
+        List<RSSItem> items = new ArrayList<>();
+        boolean insideItem = false;
+        RSSItem currentItem = null;
+        int eventType = parser.getEventType();
+        while (eventType != XmlPullParser.END_DOCUMENT) {
+            if (eventType == XmlPullParser.START_TAG) {
+                if (parser.getName().equalsIgnoreCase("item")) {
+                    insideItem = true;
+                    currentItem = new RSSItem("", "", null, "", "");
+                } else if (parser.getName().equalsIgnoreCase("title") && insideItem) {
+                    currentItem.setTitle(parser.nextText());
+                } else if (parser.getName().equalsIgnoreCase("shortDescription") && insideItem) {
+                    currentItem.setDescription(parser.nextText());
+                } else if (parser.getName().equalsIgnoreCase("pubDate") && insideItem) {
+                    String dateString = parser.nextText();
+                    Date pubDate = format.parse(dateString);
+                    currentItem.setPubDate(pubDate);
+                } else if (parser.getName().equalsIgnoreCase("link") && insideItem) {
+                    currentItem.setLink(parser.nextText());
+                } else if (parser.getName().equalsIgnoreCase("image435X329") && insideItem) {
+                    currentItem.setImage(parser.nextText());
                 }
+            } else if (eventType == XmlPullParser.END_TAG && parser.getName().equalsIgnoreCase("item")) {
+                insideItem = false;
+
+                if (currentItem != null && lastPublishedDate != null && currentItem.getPubDate().compareTo(lastPublishedDate) <= 0)
+                    break;
+
+                if (currentItem != null && currentItem.getImage() != null && currentItem.getImage() != "")
+                    items.add(currentItem);
+
+                if (items.size() >= max_notifications)      // limit the number of notifications at a time
+                    break;
+            }
+            eventType = parser.next();
+        }
+
+        return items;
+    }
+
+    private static @NonNull List<RSSItem> getHaaretzNewRssItems(XmlPullParser parser, int max_notifications, SimpleDateFormat format, Date lastPublishedDate, SharedPreferences.Editor editor) throws XmlPullParserException, IOException, ParseException {
+        List<RSSItem> items = new ArrayList<>();
+        boolean insideItem = false;
+        RSSItem currentItem = null;
+        int eventType = parser.getEventType();
+        while (eventType != XmlPullParser.END_DOCUMENT) {
+            if (eventType == XmlPullParser.START_TAG) {
+                if (parser.getName().equalsIgnoreCase("item")) {
+                    insideItem = true;
+                    currentItem = new RSSItem("", "", null, "", "");
+                } else if (parser.getName().equalsIgnoreCase("title") && insideItem) {
+                    currentItem.setTitle(parser.nextText());
+                } else if (parser.getName().equalsIgnoreCase("description") && insideItem) {
+                    currentItem.setDescription(parser.nextText());
+                } else if (parser.getName().equalsIgnoreCase("pubDate") && insideItem) {
+                    String dateString = parser.nextText();
+                    Date pubDate = format.parse(dateString);
+                    currentItem.setPubDate(pubDate);
+                } else if (parser.getName().equalsIgnoreCase("link") && insideItem) {
+                    currentItem.setLink(parser.nextText());
+                } else if (parser.getName().equalsIgnoreCase("enclosure") && insideItem) {
+                    String imageUrl = parser.getAttributeValue(null, "url");
+                    String baseUrl = imageUrl.split("\\?")[0];
+
+                    // Replace the width parameter with width=480
+                    String modifiedWidthParam = "width=720";
+
+                    // Construct the modified image URL
+                    String modifiedImageUrl = baseUrl + "?" + modifiedWidthParam;
+                    currentItem.setImage(modifiedImageUrl);
+                }
+            } else if (eventType == XmlPullParser.END_TAG && parser.getName().equalsIgnoreCase("item")) {
+                insideItem = false;
+
+                if (currentItem != null && lastPublishedDate != null && currentItem.getPubDate().compareTo(lastPublishedDate) <= 0)
+                    break;
+
+                if (currentItem != null && currentItem.getImage() != null && currentItem.getImage() != "")
+                    items.add(currentItem);
 
                 if (items.size() >= max_notifications)      // limit the number of notifications at a time
                     break;
